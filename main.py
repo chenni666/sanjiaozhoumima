@@ -1,156 +1,277 @@
 #!/usr/bin/env python3
+"""
+主程序入口
+依据GitHub Actions工作流程设计，提供数据抓取和HTML更新功能
+"""
+
 import os
 import time
 import json
-from typing import List, Dict
+import logging
+from typing import List, Dict, Tuple
 from datetime import datetime
+from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-# 直接导入并调用 zhuaqu.main()，避免子进程管理的复杂性
-import zhuaqu
-
-# 基于脚本所在目录，避免 cron 下 CWD 不一致
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-JSON_PATH = os.path.join(BASE_DIR, "output", "mima_data.json")
-HTML_PATH = os.path.join(BASE_DIR, "index.html")
-INTERVAL_SECONDS = 5 * 60  # 5 分钟
+# 导入自定义模块
+import zhuaqu as scraper
 
 
-def log(step: str):
-	now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-	print(f"[{now}] {step}")
+class Config:
+    """配置管理类"""
+    def __init__(self):
+        self.BASE_DIR = Path(__file__).parent.absolute()
+        self.OUTPUT_DIR = self.BASE_DIR / "output"
+        self.JSON_PATH = self.OUTPUT_DIR / "mima_data.json"
+        self.HTML_PATH = self.BASE_DIR / "index.html"
+        self.BACKUP_PATH = self.HTML_PATH.with_suffix('.html.bak')
+        self.RETRY_INTERVAL = 30  # 30秒重试间隔
+        self.MAX_RETRIES = 120    # 最大重试次数（1小时）
+        
+        # 确保输出目录存在
+        self.OUTPUT_DIR.mkdir(exist_ok=True)
 
 
-def _get_mtime(path: str) -> float:
-	try:
-		return os.path.getmtime(path)
-	except OSError:
-		return -1.0
+class Logger:
+    """日志管理类"""
+    def __init__(self):
+        logging.basicConfig(
+            level=logging.INFO,
+            format='[%(asctime)s] %(levelname)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        self.logger = logging.getLogger(__name__)
+    
+    def info(self, message: str):
+        self.logger.info(message)
+        
+    def error(self, message: str):
+        self.logger.error(message)
+        
+    def warning(self, message: str):
+        self.logger.warning(message)
 
 
-def _load_json_list(path: str) -> List[Dict]:
-	try:
-		with open(path, "r", encoding="utf-8") as f:
-			data = json.load(f)
-			return data if isinstance(data, list) else []
-	except Exception:
-		return []
+class DataManager:
+    """数据管理类"""
+    def __init__(self, config: Config, logger: Logger):
+        self.config = config
+        self.logger = logger
+    
+    def get_file_mtime(self, path: Path) -> float:
+        """获取文件修改时间"""
+        try:
+            return path.stat().st_mtime if path.exists() else -1.0
+        except OSError:
+            return -1.0
+    
+    def load_json_data(self, path: Path) -> List[Dict]:
+        """加载JSON数据"""
+        try:
+            if not path.exists():
+                return []
+            
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data if isinstance(data, list) else []
+        except (json.JSONDecodeError, IOError) as e:
+            self.logger.error(f"加载JSON数据失败: {e}")
+            return []
+    
+    def save_json_data(self, data: List[Dict], path: Path) -> bool:
+        """保存JSON数据"""
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            self.logger.info(f"JSON数据已保存到: {path}")
+            return True
+        except IOError as e:
+            self.logger.error(f"保存JSON数据失败: {e}")
+            return False
 
 
-def _update_index_html(data: List[Dict], html_path: str = HTML_PATH) -> None:
-	log("[HTML] 开始更新 index.html")
-	# 读取现有 HTML
-	with open(html_path, "r", encoding="utf-8") as f:
-		html = f.read()
+class HTMLUpdater:
+    """HTML更新器类"""
+    def __init__(self, config: Config, logger: Logger):
+        self.config = config
+        self.logger = logger
+    
+    def create_backup(self) -> bool:
+        """创建HTML备份"""
+        try:
+            if self.config.HTML_PATH.exists():
+                content = self.config.HTML_PATH.read_text(encoding='utf-8')
+                self.config.BACKUP_PATH.write_text(content, encoding='utf-8')
+                self.logger.info("HTML备份创建成功")
+            return True
+        except IOError as e:
+            self.logger.warning(f"创建HTML备份失败: {e}")
+            return False
+    
+    def build_card_element(self, soup: BeautifulSoup, item: Dict) -> any:
+        """构建单个卡片元素"""
+        article = soup.new_tag("article", attrs={"class": "card"})
 
-	soup = BeautifulSoup(html, "html.parser")
-	section = soup.find("section", class_="list")
-	if section is None:
-		raise RuntimeError('index.html 中未找到 <section class="list"> 区域，无法写入数据')
+        name_div = soup.new_tag("div", attrs={"class": "name"})
+        name_div.string = str(item.get("名称", ""))
 
-	# 清空列表区域并重建卡片
-	section.clear()
-	section["aria-label"] = "密码列表"
+        pass_div = soup.new_tag("div", attrs={"class": "pass", "aria-label": "密码"})
+        pass_div.string = str(item.get("密码", ""))
 
-	def build_card(item: Dict):
-		article = soup.new_tag("article", attrs={"class": "card"})
+        date_div = soup.new_tag("div", attrs={"class": "date"})
+        date_div.string = str(item.get("日期", ""))
 
-		name_div = soup.new_tag("div", attrs={"class": "name"})
-		name_div.string = str(item.get("名称", ""))
+        article.extend([name_div, pass_div, date_div])
+        return article
+    
+    def update_html(self, data: List[Dict]) -> bool:
+        """更新HTML文件"""
+        try:
+            self.logger.info("开始更新index.html")
+            
+            # 读取现有HTML
+            with open(self.config.HTML_PATH, 'r', encoding='utf-8') as f:
+                html_content = f.read()
 
-		pass_div = soup.new_tag("div", attrs={"class": "pass", "aria-label": "密码"})
-		pass_div.string = str(item.get("密码", ""))
+            soup = BeautifulSoup(html_content, "html.parser")
+            section = soup.find("section", class_="list")
+            
+            if section is None:
+                raise RuntimeError('index.html 中未找到 <section class="list"> 区域')
 
-		date_div = soup.new_tag("div", attrs={"class": "date"})
-		date_div.string = str(item.get("日期", ""))
+            # 创建备份
+            self.create_backup()
 
-		article.append(name_div)
-		article.append(pass_div)
-		article.append(date_div)
-		return article
+            # 清空并重建列表区域
+            section.clear()
+            section["aria-label"] = "密码列表"
 
-	for item in data:
-		if isinstance(item, dict):
-			section.append(build_card(item))
+            # 添加所有卡片
+            for item in data:
+                if isinstance(item, dict):
+                    card = self.build_card_element(soup, item)
+                    section.append(card)
 
-	# 写回 HTML（先备份）
-	backup_path = html_path + ".bak"
-	try:
-		if os.path.exists(html_path):
-			with open(backup_path, "w", encoding="utf-8") as bf:
-				bf.write(html)
-	except Exception:
-		# 备份失败不应阻塞主流程
-		pass
+            # 写回HTML文件
+            with open(self.config.HTML_PATH, 'w', encoding='utf-8') as f:
+                f.write(str(soup))
+            
+            self.logger.info("index.html 更新完成")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"更新HTML失败: {e}")
+            return False
 
-	with open(html_path, "w", encoding="utf-8") as f:
-		# 直接写 str(soup) 尽量减少重排
-		f.write(str(soup))
-	log("[HTML] index.html 更新完成")
+
+class ScrapingManager:
+    """抓取管理器"""
+    def __init__(self, config: Config, logger: Logger):
+        self.config = config
+        self.logger = logger
+        self.data_manager = DataManager(config, logger)
+        self.html_updater = HTMLUpdater(config, logger)
+    
+    def run_once_and_maybe_update(self) -> bool:
+        """执行一次抓取并可能更新HTML"""
+        self.logger.info("开始执行抓取流程")
+        
+        # 获取抓取前的文件修改时间
+        before_mtime = self.data_manager.get_file_mtime(self.config.JSON_PATH)
+        
+        try:
+            # 执行抓取
+            self.logger.info("调用抓取模块执行数据抓取")
+            success = scraper.main()
+            
+            if not success:
+                self.logger.warning("抓取执行失败")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"抓取过程中出现异常: {e}")
+            return False
+        
+        # 检查文件是否有更新
+        after_mtime = self.data_manager.get_file_mtime(self.config.JSON_PATH)
+        
+        if after_mtime <= before_mtime:
+            self.logger.info("未检测到数据更新")
+            return False
+        
+        # 加载新数据
+        data = self.data_manager.load_json_data(self.config.JSON_PATH)
+        
+        if not data:
+            self.logger.warning("JSON文件为空或格式不正确")
+            return False
+        
+        # 更新HTML
+        if self.html_updater.update_html(data):
+            self.logger.info("数据抓取和HTML更新完成")
+            return True
+        else:
+            return False
+
+
+def main():
+    """主函数 - 用于GitHub Actions工作流"""
+    # 初始化配置和日志
+    config = Config()
+    logger = Logger()
+    scraping_manager = ScrapingManager(config, logger)
+    
+    # 设置工作目录
+    os.chdir(config.BASE_DIR)
+    logger.info("程序启动，开始抓取流程")
+    
+    # 执行抓取和更新
+    success = scraping_manager.run_once_and_maybe_update()
+    
+    if success:
+        logger.info("抓取和更新成功完成")
+        return True
+    else:
+        logger.error("抓取和更新失败")
+        return False
 
 
 def run_once_and_maybe_update() -> bool:
-	"""
-	执行一次抓取：
-	- 在执行前后比较 JSON 文件 mtime。
-	- 若更新发生，读取 JSON 并更新 index.html。
-	返回：是否已更新并完成（True 则主循环应退出）。
-	"""
-	log("[RUN] 开始抓取流程：比较 JSON mtime")
-	before_mtime = _get_mtime(JSON_PATH)
-
-	try:
-		# 执行抓取逻辑；内部仅在有变化时才写 mima_data.json
-		log("[RUN] 调用 zhuaqu.main() 执行抓取")
-		zhuaqu.main()
-	except Exception as e:
-		log(f"[ERR] 运行 zhuaqu 失败：{e}")
-		return False  # 失败则等待重试
-
-	after_mtime = _get_mtime(JSON_PATH)
-	updated = (after_mtime > before_mtime)
-
-	if not updated:
-		log("[RUN] 未检测到数据更新，将于5分钟后重试……")
-		return False
-
-	data = _load_json_list(JSON_PATH)
-	if not data:
-		log("[RUN] JSON 文件存在但为空或格式不正确，稍后重试……")
-		return False
-
-	try:
-		_update_index_html(data, HTML_PATH)
-		log("[OK ] index.html 已根据最新 JSON 成功更新。")
-		return True
-	except Exception as e:
-		log(f"[ERR] 更新 index.html 失败：{e}")
-		return False
+    """为GitHub Actions提供的兼容性函数"""
+    return main()
 
 
-def main_loop():
-	# 确保工作目录为脚本目录（影响相对路径的依赖如 zhuaqu 的输出）
-	log("[INIT] 设置工作目录并进入循环")
-	try:
-		os.chdir(BASE_DIR)
-	except Exception:
-		pass
-	while True:
-		loop_start = time.time()
-		log("[LOOP] 本轮开始")
-		done = run_once_and_maybe_update()
-		if done:
-			log("[LOOP] 已完成更新，退出主循环")
-			break
-		elapsed = int(time.time() - loop_start)
-		remaining = max(0, INTERVAL_SECONDS - elapsed)
-		log(f"[LOOP] 本轮结束，将在 {remaining}s 后重试")
-		time.sleep(remaining)
+def continuous_mode():
+    """连续模式 - 用于本地调试"""
+    config = Config()
+    logger = Logger()
+    scraping_manager = ScrapingManager(config, logger)
+    
+    os.chdir(config.BASE_DIR)
+    logger.info("程序启动，进入连续监控模式")
+    
+    retry_count = 0
+    
+    while retry_count < config.MAX_RETRIES:
+        retry_count += 1
+        logger.info(f"第 {retry_count} 次尝试")
+        
+        if scraping_manager.run_once_and_maybe_update():
+            logger.info("抓取成功，退出连续模式")
+            break
+        
+        if retry_count < config.MAX_RETRIES:
+            logger.info(f"等待 {config.RETRY_INTERVAL} 秒后重试")
+            time.sleep(config.RETRY_INTERVAL)
+    else:
+        logger.error(f"已达到最大重试次数 {config.MAX_RETRIES}")
 
 
 if __name__ == "__main__":
-	log("[MAIN] 程序启动")
-	main_loop()
-	log("[MAIN] 程序退出")
-
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "--continuous":
+        continuous_mode()
+    else:
+        main()

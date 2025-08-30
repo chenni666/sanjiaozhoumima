@@ -1,0 +1,231 @@
+﻿<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>今日密码</title>
+<style>
+      :root {
+        color-scheme: light dark;
+        /* default (will be overridden by theme class) */
+        --bg: #ffffff;
+        --fg: #111111;
+        --muted: #666666;
+        --card-bg: #ffffff;
+        --card-border: #dddddd;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        margin: 4vh auto;
+        line-height: 1.5;
+        max-width: min(720px, 92vw);
+        background: var(--bg);
+        color: var(--fg);
+      }
+      /* themes */
+      body.theme-light {
+        color-scheme: light;
+        --bg: #ffffff;
+        --fg: #111111;
+        --muted: #666666;
+        --card-bg: #ffffff;
+        --card-border: #dddddd;
+      }
+      body.theme-dark {
+        color-scheme: dark;
+        --bg: #0b0b0b;
+        --fg: #eaeaea;
+        --muted: #a1a1a1;
+        --card-bg: #121212;
+        --card-border: #2a2a2a;
+      }
+  h1 { font-size: clamp(20px, 3.2vw, 28px); margin: 0 0 14px; text-align: center; }
+      .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: center; /* 整体水平居中 */
+        gap: 12px;
+        margin: 0 0 12px;
+        flex-wrap: wrap; /* 小屏时自动换行 */
+      }
+      h1 { margin: 0; } /* 清除标题的默认间距 */
+      .list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+        margin: 0 0 20px;
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 16px;
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        column-gap: 10px;
+        row-gap: 6px;
+        align-items: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+      }
+      .card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+      .name {
+        font-weight: 600;
+        font-size: 17px;
+      }
+      .pass {
+        font-family: "Courier New", Consolas, monospace;
+        font-size: 20px;
+        font-weight: bold;
+        color: #0066cc;
+        padding: 4px 8px;
+        background: rgba(0,102,204,0.1);
+        border-radius: 4px;
+        margin: 0 8px;
+      }
+      body.theme-dark .pass {
+        color: #66b3ff;
+        background: rgba(102,179,255,0.1);
+      }
+      .date {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        margin: 24px 0;
+      }
+
+      /* 小屏下将日期换行独占一行，避免挤压 */
+      @media (max-width: 520px) {
+        .card { grid-template-columns: 1fr auto; }
+        .card .date { grid-column: 1 / -1; margin-top: 6px; text-align: left; }
+      }
+
+      /* theme button */
+      .theme-toggle {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        z-index: 100;
+      }
+      .theme-toggle:hover { filter: brightness(0.98); }
+
+      /* corner link */
+      .corner-link {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--fg);
+        border-radius: 8px;
+        padding: 8px 12px;
+        line-height: 1;
+        font-size: 14px;
+        text-decoration: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      }
+      .corner-link:hover { filter: brightness(0.98); }
+
+  /* link to weizhi */
+  .link-row { margin: 0; }
+      .link-btn {
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        color: var(--fg);
+        border-radius: 8px;
+        padding: 8px 12px;
+        text-decoration: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        font-size: 14px;
+      }
+      .link-btn:hover { filter: brightness(0.98); }
+  /* 紧凑版按钮仅用于标题行，便于与标题垂直对齐 */
+  .title-row .link-btn { padding: 6px 10px; line-height: 1; }
+
+      @media print {
+        body { margin: 0.5cm; }
+        .card { break-inside: avoid; }
+    .theme-toggle, .corner-link { display: none; }
+      }
+    </style>
+</head>
+<body>
+<button aria-label="切换日/夜间" class="theme-toggle" id="themeToggle" title="切换日/夜间">🌙</button>
+<a aria-label="前往改枪码网站" class="corner-link" href="https://gqm.cheniyy.top" rel="noopener" target="_blank" title="前往改枪码网站">改枪码</a>
+<div class="title-row">
+<h1>今日密码</h1>
+<nav aria-label="页面导航" class="link-row">
+<a aria-label="具体位置" class="link-btn" href="weizhi.html" title="具体位置">具体位置</a>
+</nav>
+</div>
+<section aria-label="密码列表" class="list" id="passwordList"><article class="card"><div class="name">巴克什</div><div aria-label="密码" class="pass">0152</div><div class="date">2025-08-30</div></article><article class="card"><div class="name">潮汐监狱</div><div aria-label="密码" class="pass">0137</div><div class="date">2025-08-30</div></article><article class="card"><div class="name">航天基地</div><div aria-label="密码" class="pass">0703</div><div class="date">2025-08-30</div></article><article class="card"><div class="name">长弓溪谷</div><div aria-label="密码" class="pass">0257</div><div class="date">2025-08-30</div></article><article class="card"><div class="name">零号大坝</div><div aria-label="密码" class="pass">0277</div><div class="date">2025-08-30</div></article></section>
+<footer>本网站目前仅做学习交流使用，禁止用于商业用途。</footer>
+<script>
+      // 简单的日夜判定：6:00-18:00 为日间，其余为夜间；本地存储优先
+      (function() {
+        const STORAGE_KEY = 'theme'; // 'light' | 'dark'
+        const btn = document.getElementById('themeToggle');
+        const hour = new Date().getHours();
+        const defaultTheme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+
+        function applyTheme(theme) {
+          document.body.classList.remove('theme-light', 'theme-dark');
+          document.body.classList.add('theme-' + theme);
+          // 按钮图标与辅助文本
+          const to = theme === 'light' ? 'dark' : 'light';
+          btn.textContent = theme === 'light' ? '🌙' : '🌞';
+          btn.setAttribute('aria-label', '切换到' + (to === 'light' ? '日间' : '夜间'));
+          btn.setAttribute('title', '切换到' + (to === 'light' ? '日间' : '夜间'));
+        }
+
+        let theme = localStorage.getItem(STORAGE_KEY) || defaultTheme;
+        applyTheme(theme);
+
+        btn.addEventListener('click', function() {
+          theme = (theme === 'light') ? 'dark' : 'light';
+          localStorage.setItem(STORAGE_KEY, theme);
+          applyTheme(theme);
+        });
+      })();
+
+      // 动态加载密码数据
+      async function loadPasswords() {
+        try {
+          const response = await fetch('/api/passwords');
+          if (response.ok) {
+            const data = await response.json();
+            const passwordList = document.getElementById('passwordList');
+            
+            passwordList.innerHTML = data.map(item => `
+              <article class="card">
+                <div class="name">${item.name}</div>
+                <div class="pass" aria-label="密码">${item.password}</div>
+                <div class="date">${item.date}</div>
+              </article>
+            `).join('');
+          }
+        } catch (error) {
+          console.error('Failed to load passwords:', error);
+          // 保持默认的静态内容
+        }
+      }
+
+      // 页面加载时尝试获取动态数据
+      document.addEventListener('DOMContentLoaded', loadPasswords);
+    </script>
+</body>
+</html>
