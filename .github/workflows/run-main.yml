@@ -1,0 +1,68 @@
+name: Run scraper and update index
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每天北京时间 00:00 触发（GitHub 使用 UTC，这里换算为 16:00 UTC）
+    - cron: '0 16 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Install Google Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Retry scrape every 30s until success
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          python - <<'PY'
+          import time, sys
+          import main
+          attempt = 0
+          while True:
+              attempt += 1
+              updated = main.run_once_and_maybe_update()
+              print(f"ATTEMPT {attempt} UPDATED={updated}", flush=True)
+              if updated:
+                  # 成功后退出循环，进入提交步骤
+                  sys.exit(0)
+              time.sleep(30)
+          PY
+
+      - name: Commit and push changes (if any)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep .; then
+            echo "Changes detected, committing..."
+            git add -A
+            git commit -m "chore: auto-update data and index.html [skip ci]"
+            git push
+          else
+            echo "No changes to commit."
+          fi
