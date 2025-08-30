@@ -1,29 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>位置一览</title>
-	<style>
-		:root {
-			--max-img-w: 320px;
-			--gap: 16px;
-		}
-		body {
-			margin: 0;
-			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Microsoft YaHei", sans-serif;
-			color: #222;
-			background: #f7f7f8;
-		}
-		.page {
-			max-width: 980px;
-			margin: 0 auto;
-			padding: 24px 16px 56px;
-		}
-		h1 {
-			font-size: 22px;
-			margin: 0 0 20px;
-		}
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>位置一览</title>
+		<style>
+			:root {
+				color-scheme: light dark;
+				--bg: #ffffff;
+				--fg: #111111;
+				--muted: #666666;
+				--card-bg: #ffffff;
+				--card-border: #dddddd;
+				--gap: 16px;
+				--max-img-w: 320px;
+			}
+			* { box-sizing: border-box; }
+			body {
+				font-family: system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+				margin: 4vh auto;
+				line-height: 1.5;
+				max-width: min(980px, 92vw);
+				background: var(--bg);
+				color: var(--fg);
+			}
+			body.theme-light {
+				color-scheme: light;
+				--bg: #ffffff;
+				--fg: #111111;
+				--muted: #666666;
+				--card-bg: #ffffff;
+				--card-border: #dddddd;
+			}
+			body.theme-dark {
+				color-scheme: dark;
+				--bg: #0b0b0b;
+				--fg: #eaeaea;
+				--muted: #a1a1a1;
+				--card-bg: #121212;
+				--card-border: #2a2a2a;
+			}
+			h1 { font-size: clamp(20px, 3.2vw, 28px); margin: 0 0 14px; text-align: left; }
 			.header-row {
 				display: flex;
 				align-items: center;
@@ -36,71 +53,114 @@
 			.tip {
 				font-size: 14px;
 				font-weight: 700;
-				color: #d9480f; /* 显眼的橙红色 */
+				color: #d9480f;
 				white-space: nowrap;
 				user-select: none;
 			}
-		.list {
-			display: flex;
-			flex-direction: column;
-			gap: 14px;
-		}
-				.back-row {
-					position: sticky;
-					top: 0;
-					z-index: 20;
-					margin: 0 0 10px;
-					padding: 8px 0; /* 提升可点区域 */
-					background: rgba(247,247,248,0.85);
-					-webkit-backdrop-filter: saturate(180%) blur(6px);
-					backdrop-filter: saturate(180%) blur(6px);
-					border-bottom: 1px solid #e8e8ea;
-				}
-			.back-btn {
+			.back-row { margin: 0 0 10px; }
+			.back-btn, .link-btn {
 				display: inline-block;
-				border: 1px solid #e8e8ea;
-				background: #fff;
-				color: #222;
+				border: 1px solid var(--card-border);
+				background: var(--card-bg);
+				color: var(--fg);
 				border-radius: 8px;
 				padding: 8px 12px;
 				text-decoration: none;
 				box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 				font-size: 14px;
 			}
-			.back-btn:hover { filter: brightness(0.98); }
-		.row {
-			display: flex;
-			align-items: center;
-			gap: var(--gap);
-			padding: 12px;
-			background: #fff;
-			border: 1px solid #e8e8ea;
-			border-radius: 10px;
-			box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-		}
-		.text {
-			flex: 1 1 auto;
-			line-height: 1.6;
-		}
-		.title {
-			font-weight: 600;
-			margin-right: 6px;
-		}
-		.img-wrap {
-			flex: 0 0 auto;
-			max-width: var(--max-img-w);
-		}
-		.img-wrap img {
-			display: block;
-			max-width: 100%;
-			height: auto;
-			border-radius: 8px;
-			border: 1px solid #eee;
-		}
-		@media (max-width: 640px) {
-			.row { flex-direction: column; align-items: flex-start; }
-			.img-wrap { width: 100%; max-width: 100%; }
-		}
+			.back-btn:hover, .link-btn:hover { filter: brightness(0.98); }
+
+					/* 改为响应式卡片网格 */
+							.list {
+						display: grid;
+						grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+						gap: 16px;
+					}
+							.row {
+								display: flex;
+								flex-direction: column;
+						padding: 0;
+						background: var(--card-bg);
+						border: 1px solid var(--card-border);
+						border-radius: 10px;
+						overflow: hidden;
+						box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+						transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+					}
+					.row:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); border-color: rgba(0,0,0,0.08); }
+							.text { padding: 12px 12px 14px; line-height: 1.65; }
+							/* 限制描述文字两行，避免高度不一致 */
+							.text span:last-child {
+								display: -webkit-box;
+							line-clamp: 2;
+								-webkit-line-clamp: 2;
+								-webkit-box-orient: vertical;
+								overflow: hidden;
+							}
+					.title {
+						display: inline-block;
+						font-weight: 600;
+						margin: 0 6px 6px 0;
+						padding: 2px 8px;
+						font-size: 13px;
+						border-radius: 999px;
+						background: rgba(0,102,204,0.10);
+						color: #005299;
+					}
+					body.theme-dark .title { background: rgba(102,179,255,0.12); color: #9fd0ff; }
+							/* 固定图片显示比例为 16:9，统一尺寸并将图片置顶显示 */
+							.img-wrap {
+								order: -1;
+								width: 100%;
+								max-width: 100%;
+								aspect-ratio: 16 / 9;
+								overflow: hidden;
+								background: #0002;
+								border-bottom: 1px solid var(--card-border);
+							}
+					.img-wrap img {
+								display: block;
+								width: 100%;
+								height: 100%;
+								object-fit: cover; /* 如需强制拉伸不裁剪，可将 cover 改为 fill */
+								object-position: center;
+					}
+					@media (max-width: 640px) { .list { grid-template-columns: 1fr; } }
+
+			/* theme button (same as index) */
+			.theme-toggle {
+				position: fixed;
+				top: 16px;
+				right: 16px;
+				background: var(--card-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 50%;
+				width: 40px;
+				height: 40px;
+				font-size: 18px;
+				cursor: pointer;
+				box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+				z-index: 100;
+			}
+			.theme-toggle:hover { filter: brightness(0.98); }
+
+			/* corner link (same as index) */
+			.corner-link {
+				position: fixed;
+				top: 16px;
+				left: 16px;
+				background: var(--card-bg);
+				border: 1px solid var(--card-border);
+				color: var(--fg);
+				border-radius: 8px;
+				padding: 8px 12px;
+				line-height: 1;
+				font-size: 14px;
+				text-decoration: none;
+				box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+			}
+			.corner-link:hover { filter: brightness(0.98); }
 
 			/* Lightbox */
 			.lightbox {
@@ -122,7 +182,7 @@
 				border: 1px solid rgba(255,255,255,0.2);
 				background: #111;
 			}
-			.lightbox .close-btn {
+					.lightbox .close-btn {
 				position: fixed;
 				top: 16px;
 				right: 16px;
@@ -136,7 +196,9 @@
 				place-items: center;
 				cursor: pointer;
 				font-size: 20px;
+						outline: none;
 			}
+					.lightbox .close-btn:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,0.35); }
 			.lightbox .caption {
 				position: fixed;
 				left: 24px;
@@ -148,11 +210,18 @@
 				text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 			}
 			.no-scroll { overflow: hidden; }
-	</style>
-	<meta name="description" content="三角洲密码——位置与图片一览：每行对应一条说明与一张图片。" />
-</head>
-<body>
-	<main class="page">
+
+			@media print {
+				body { margin: 0.5cm; }
+				.theme-toggle, .corner-link { display: none; }
+			}
+		</style>
+		<meta name="description" content="三角洲密码——位置与图片一览：每行对应一条说明与一张图片。" />
+	</head>
+	<body>
+		<button id="themeToggle" class="theme-toggle" aria-label="切换日/夜间" title="切换日/夜间">🌙</button>
+		<a class="corner-link" href="https://gqm.cheniyy.top" target="_blank" rel="noopener" aria-label="前往改枪码网站" title="前往改枪码网站">改枪码</a>
+		<main>
 			<nav class="back-row" aria-label="页面导航">
 				<a class="back-btn" href="index.html" aria-label="返回首页" title="返回首页">← 返回</a>
 			</nav>
@@ -160,63 +229,64 @@
 				<h1>位置与图片一览</h1>
 				<div class="tip" role="note" aria-label="提示">Tip: 点击图片可以放大哦</div>
 			</div>
-		<section class="list">
-			<!-- 零号大坝 -->
-			<div class="row">
-				<div class="text">
-					<span class="title">【零号大坝】</span>
-					<span>位置: 主变电站右侧，进入地下管道后匍匐到通道尽头处</span>
+			<section class="list">
+				<!-- 零号大坝 -->
+				<div class="row">
+					<div class="text">
+						<span class="title">【零号大坝】</span>
+						<span>位置: 主变电站右侧，进入地下管道后匍匐到通道尽头处</span>
+					</div>
+					<div class="img-wrap">
+						<img src="image/daba.png" alt="零号大坝" loading="lazy" />
+					</div>
 				</div>
-				<div class="img-wrap">
-					<img src="image/daba.png" alt="零号大坝" loading="lazy" />
-				</div>
-			</div>
 
-			<!-- 长弓溪谷 -->
-			<div class="row">
-				<div class="text">
-					<span class="title">【长弓溪谷】</span>
-					<span>位置: 地图右下角标点附近地下入口</span>
+				<!-- 长弓溪谷 -->
+				<div class="row">
+					<div class="text">
+						<span class="title">【长弓溪谷】</span>
+						<span>位置: 地图右下角标点附近地下入口</span>
+					</div>
+					<div class="img-wrap">
+						<img src="image/changgongxigu.png" alt="长弓溪谷" loading="lazy" />
+					</div>
 				</div>
-				<div class="img-wrap">
-					<img src="image/changgongxigu.png" alt="长弓溪谷" loading="lazy" />
-				</div>
-			</div>
 
-			<!-- 巴克什 -->
-			<div class="row">
-				<div class="text">
-					<span class="title">【巴克什】</span>
-					<span>位置: 大浴场北侧</span>
+				<!-- 巴克什 -->
+				<div class="row">
+					<div class="text">
+						<span class="title">【巴克什】</span>
+						<span>位置: 大浴场北侧</span>
+					</div>
+					<div class="img-wrap">
+						<img src="image/bakeshi.png" alt="巴克什" loading="lazy" />
+					</div>
 				</div>
-				<div class="img-wrap">
-					<img src="image/bakeshi.png" alt="巴克什" loading="lazy" />
-				</div>
-			</div>
 
-			<!-- 航天基地 -->
-			<div class="row">
-				<div class="text">
-					<span class="title">【航天基地】</span>
-					<span>位置: 工业区组装室2楼</span>
+				<!-- 航天基地 -->
+				<div class="row">
+					<div class="text">
+						<span class="title">【航天基地】</span>
+						<span>位置: 工业区组装室2楼</span>
+					</div>
+					<div class="img-wrap">
+						<img src="image/hangtian.png" alt="航天基地" loading="lazy" />
+					</div>
 				</div>
-				<div class="img-wrap">
-					<img src="image/hangtian.png" alt="航天基地" loading="lazy" />
-				</div>
-			</div>
 
-			<!-- 潮汐监狱 -->
-			<div class="row">
-				<div class="text">
-					<span class="title">【潮汐监狱】</span>
-					<span>位置: 监狱行政区1楼大厅楼梯拐角处</span>
+				<!-- 潮汐监狱 -->
+				<div class="row">
+					<div class="text">
+						<span class="title">【潮汐监狱】</span>
+						<span>位置: 监狱行政区1楼大厅楼梯拐角处</span>
+					</div>
+					<div class="img-wrap">
+						<img src="image/prison.png" alt="潮汐监狱" loading="lazy" />
+					</div>
 				</div>
-				<div class="img-wrap">
-					<img src="image/prison.png" alt="潮汐监狱" loading="lazy" />
-				</div>
-			</div>
-		</section>
-	</main>
+			</section>
+		</main>
+
 		<!-- Lightbox overlay -->
 		<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片预览">
 			<button class="close-btn" id="lightbox-close" aria-label="关闭预览">×</button>
@@ -225,6 +295,33 @@
 		</div>
 
 		<script>
+			// 主题切换，与 index 一致
+			(function() {
+				const STORAGE_KEY = 'theme';
+				const btn = document.getElementById('themeToggle');
+				const hour = new Date().getHours();
+				const defaultTheme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+
+				function applyTheme(theme) {
+					document.body.classList.remove('theme-light', 'theme-dark');
+					document.body.classList.add('theme-' + theme);
+					const to = theme === 'light' ? 'dark' : 'light';
+					btn.textContent = theme === 'light' ? '🌙' : '🌞';
+					btn.setAttribute('aria-label', '切换到' + (to === 'light' ? '日间' : '夜间'));
+					btn.setAttribute('title', '切换到' + (to === 'light' ? '日间' : '夜间'));
+				}
+
+				let theme = localStorage.getItem(STORAGE_KEY) || defaultTheme;
+				applyTheme(theme);
+
+				btn.addEventListener('click', function() {
+					theme = (theme === 'light') ? 'dark' : 'light';
+					localStorage.setItem(STORAGE_KEY, theme);
+					applyTheme(theme);
+				});
+			})();
+
+					// 图片灯箱 + 键盘无障碍
 			(function(){
 				const lb = document.getElementById('lightbox');
 				const lbImg = document.getElementById('lightbox-img');
@@ -240,24 +337,25 @@
 				function closeLightbox(){
 					lb.classList.remove('open');
 					document.body.classList.remove('no-scroll');
-					// 延迟清理，避免关闭动画时闪烁（此处简单即刻清）
 					lbImg.removeAttribute('src');
 				}
-				// 点击图片打开
-				document.querySelectorAll('.img-wrap img').forEach(img => {
-					img.style.cursor = 'zoom-in';
-					img.addEventListener('click', () => openLightbox(img.currentSrc || img.src, img.alt));
-				});
-				// 点击背景或关闭按钮关闭
-				lb.addEventListener('click', (e) => {
-					if (e.target === lb) closeLightbox();
-				});
+						document.querySelectorAll('.img-wrap img').forEach(img => {
+							img.style.cursor = 'zoom-in';
+							img.setAttribute('tabindex', '0');
+							img.setAttribute('role', 'button');
+							img.setAttribute('aria-label', (img.alt || '图片') + '，按回车放大');
+							img.addEventListener('click', () => openLightbox(img.currentSrc || img.src, img.alt));
+							img.addEventListener('keydown', (e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									openLightbox(img.currentSrc || img.src, img.alt);
+								}
+							});
+						});
+				lb.addEventListener('click', (e) => { if (e.target === lb) closeLightbox(); });
 				closeBtn.addEventListener('click', closeLightbox);
-				// 键盘 ESC 关闭
-				document.addEventListener('keydown', (e) => {
-					if (e.key === 'Escape' && lb.classList.contains('open')) closeLightbox();
-				});
+				document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && lb.classList.contains('open')) closeLightbox(); });
 			})();
 		</script>
-</body>
+	</body>
 </html>

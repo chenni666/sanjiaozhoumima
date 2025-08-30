@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
@@ -40,7 +40,7 @@
         --card-bg: #121212;
         --card-border: #2a2a2a;
       }
-      h1 { font-size: clamp(18px, 2.6vw, 24px); margin: 0 0 14px; text-align: center; }
+  h1 { font-size: clamp(20px, 3.2vw, 28px); margin: 0 0 14px; text-align: center; }
       .title-row {
         display: flex;
         align-items: center;
@@ -49,54 +49,89 @@
         margin: 0 0 12px;
         flex-wrap: wrap; /* 小屏时自动换行 */
       }
-      .title-row h1 { margin: 0; line-height: 1.15; }
-      .list { display: grid; gap: clamp(10px, 1.6vw, 14px); }
+      h1 { margin: 0; } /* 清除标题的默认间距 */
+      .list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+        margin: 0 0 20px;
+      }
       .card {
-        border: 1px solid var(--card-border);
-        border-radius: 8px;
-        padding: clamp(12px, 1.8vw, 16px) clamp(14px, 2vw, 18px);
-        text-align: center;
         background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 16px;
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        column-gap: 10px;
+        row-gap: 6px;
+        align-items: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
       }
-      .name { font-size: clamp(16px, 2.2vw, 20px); font-weight: 700; }
+      .card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+      .name {
+        font-weight: 600;
+        font-size: 17px;
+      }
       .pass {
-        margin-top: 6px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: clamp(24px, 5.5vw, 32px);
-        letter-spacing: 0.08em;
+        font-family: "Courier New", Consolas, monospace;
+        font-size: 20px;
+        font-weight: bold;
+        color: #0066cc;
+        padding: 4px 8px;
+        background: rgba(0,102,204,0.1);
+        border-radius: 4px;
+        margin: 0 8px;
       }
-      .date { margin-top: 4px; font-size: clamp(11px, 1.6vw, 13px); color: var(--muted); }
-      footer { margin-top: 12px; font-size: 12px; color: var(--muted); }
+      body.theme-dark .pass {
+        color: #66b3ff;
+        background: rgba(102,179,255,0.1);
+      }
+      .date {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        margin: 24px 0;
+      }
 
-      /* toggle button */
+      /* 小屏下将日期换行独占一行，避免挤压 */
+      @media (max-width: 520px) {
+        .card { grid-template-columns: 1fr auto; }
+        .card .date { grid-column: 1 / -1; margin-top: 6px; text-align: left; }
+      }
+
+      /* theme button */
       .theme-toggle {
         position: fixed;
-        top: 12px;
-        right: 12px;
-        z-index: 10;
-        border: 1px solid var(--card-border);
+        top: 16px;
+        right: 16px;
         background: var(--card-bg);
-        color: var(--fg);
-        border-radius: 999px;
-        padding: 8px 10px;
-        line-height: 1;
-        font-size: 16px;
+        border: 1px solid var(--card-border);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
         cursor: pointer;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        z-index: 100;
       }
       .theme-toggle:hover { filter: brightness(0.98); }
 
-      /* top-right external link */
+      /* corner link */
       .corner-link {
         position: fixed;
-        top: 12px;
-        right: 64px; /* 留出主题切换按钮的空间 */
-        z-index: 10;
-        border: 1px solid var(--card-border);
+        top: 16px;
+        left: 16px;
         background: var(--card-bg);
+        border: 1px solid var(--card-border);
         color: var(--fg);
-        border-radius: 999px;
-        padding: 8px 10px;
+        border-radius: 8px;
+        padding: 8px 12px;
         line-height: 1;
         font-size: 14px;
         text-decoration: none;
@@ -136,7 +171,8 @@
         <a class="link-btn" href="weizhi.html" aria-label="具体位置" title="具体位置">具体位置</a>
       </nav>
     </div>
-    <section class="list" aria-label="密码列表">
+    <section class="list" aria-label="密码列表" id="passwordList">
+      <!-- 密码列表将通过JavaScript动态加载 -->
       <article class="card">
         <div class="name">零号大坝</div>
         <div class="pass" aria-label="密码">8699</div>
@@ -191,6 +227,31 @@
           applyTheme(theme);
         });
       })();
+
+      // 动态加载密码数据
+      async function loadPasswords() {
+        try {
+          const response = await fetch('/api/passwords');
+          if (response.ok) {
+            const data = await response.json();
+            const passwordList = document.getElementById('passwordList');
+            
+            passwordList.innerHTML = data.map(item => `
+              <article class="card">
+                <div class="name">${item.name}</div>
+                <div class="pass" aria-label="密码">${item.password}</div>
+                <div class="date">${item.date}</div>
+              </article>
+            `).join('');
+          }
+        } catch (error) {
+          console.error('Failed to load passwords:', error);
+          // 保持默认的静态内容
+        }
+      }
+
+      // 页面加载时尝试获取动态数据
+      document.addEventListener('DOMContentLoaded', loadPasswords);
     </script>
   </body>
-  </html>
+</html>
