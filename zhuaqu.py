@@ -45,16 +45,17 @@ class BrowserManager:
         """创建并配置无头浏览器驱动"""
         self.logger.info("初始化浏览器驱动")
         
+        # 优先尝试 Edge，其次回退到 Chrome
         browsers = [
-            {
-                'name': 'Chrome',
-                'class': webdriver.Chrome,
-                'options': webdriver.ChromeOptions()
-            },
             {
                 'name': 'Edge',
                 'class': webdriver.Edge,
                 'options': webdriver.EdgeOptions()
+            },
+            {
+                'name': 'Chrome',
+                'class': webdriver.Chrome,
+                'options': webdriver.ChromeOptions()
             }
         ]
         
@@ -74,10 +75,14 @@ class BrowserManager:
                     browser['options'].add_argument(arg)
                 
                 # 禁用图片加载以加快速度
-                if browser['name'] == 'Chrome':
-                    browser['options'].add_experimental_option("prefs", {
-                        "profile.managed_default_content_settings.images": 2
-                    })
+                if browser['name'] in ('Chrome', 'Edge'):
+                    # EdgeOptions 也支持 add_experimental_option 用于 prefs
+                    try:
+                        browser['options'].add_experimental_option("prefs", {
+                            "profile.managed_default_content_settings.images": 2
+                        })
+                    except Exception:
+                        pass
                 
                 driver = browser['class'](options=browser['options'])
                 self.driver = driver
