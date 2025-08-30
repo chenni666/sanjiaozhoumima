@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>今日密码</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        /* default (will be overridden by theme class) */
+        --bg: #ffffff;
+        --fg: #111111;
+        --muted: #666666;
+        --card-bg: #ffffff;
+        --card-border: #dddddd;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        margin: 4vh auto;
+        line-height: 1.5;
+        max-width: min(720px, 92vw);
+        background: var(--bg);
+        color: var(--fg);
+      }
+      /* themes */
+      body.theme-light {
+        color-scheme: light;
+        --bg: #ffffff;
+        --fg: #111111;
+        --muted: #666666;
+        --card-bg: #ffffff;
+        --card-border: #dddddd;
+      }
+      body.theme-dark {
+        color-scheme: dark;
+        --bg: #0b0b0b;
+        --fg: #eaeaea;
+        --muted: #a1a1a1;
+        --card-bg: #121212;
+        --card-border: #2a2a2a;
+      }
+      h1 { font-size: clamp(18px, 2.6vw, 24px); margin: 0 0 14px; text-align: center; }
+      .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: center; /* 整体水平居中 */
+        gap: 12px;
+        margin: 0 0 12px;
+        flex-wrap: wrap; /* 小屏时自动换行 */
+      }
+      .title-row h1 { margin: 0; line-height: 1.15; }
+      .list { display: grid; gap: clamp(10px, 1.6vw, 14px); }
+      .card {
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        padding: clamp(12px, 1.8vw, 16px) clamp(14px, 2vw, 18px);
+        text-align: center;
+        background: var(--card-bg);
+      }
+      .name { font-size: clamp(16px, 2.2vw, 20px); font-weight: 700; }
+      .pass {
+        margin-top: 6px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: clamp(24px, 5.5vw, 32px);
+        letter-spacing: 0.08em;
+      }
+      .date { margin-top: 4px; font-size: clamp(11px, 1.6vw, 13px); color: var(--muted); }
+      footer { margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+      /* toggle button */
+      .theme-toggle {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 10;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        color: var(--fg);
+        border-radius: 999px;
+        padding: 8px 10px;
+        line-height: 1;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      }
+      .theme-toggle:hover { filter: brightness(0.98); }
+
+      /* top-right external link */
+      .corner-link {
+        position: fixed;
+        top: 12px;
+        right: 64px; /* 留出主题切换按钮的空间 */
+        z-index: 10;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        color: var(--fg);
+        border-radius: 999px;
+        padding: 8px 10px;
+        line-height: 1;
+        font-size: 14px;
+        text-decoration: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      }
+      .corner-link:hover { filter: brightness(0.98); }
+
+  /* link to weizhi */
+  .link-row { margin: 0; }
+      .link-btn {
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        color: var(--fg);
+        border-radius: 8px;
+        padding: 8px 12px;
+        text-decoration: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        font-size: 14px;
+      }
+      .link-btn:hover { filter: brightness(0.98); }
+  /* 紧凑版按钮仅用于标题行，便于与标题垂直对齐 */
+  .title-row .link-btn { padding: 6px 10px; line-height: 1; }
+
+      @media print {
+        body { margin: 0.5cm; }
+        .card { break-inside: avoid; }
+    .theme-toggle, .corner-link { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <button id="themeToggle" class="theme-toggle" aria-label="切换日/夜间" title="切换日/夜间">🌙</button>
+  <a class="corner-link" href="https://gqm.cheniyy.top" target="_blank" rel="noopener" aria-label="前往改枪码网站" title="前往改枪码网站">改枪码</a>
+    <div class="title-row">
+      <h1>今日密码</h1>
+      <nav class="link-row" aria-label="页面导航">
+        <a class="link-btn" href="weizhi.html" aria-label="具体位置" title="具体位置">具体位置</a>
+      </nav>
+    </div>
+    <section class="list" aria-label="密码列表">
+      <article class="card">
+        <div class="name">零号大坝</div>
+        <div class="pass" aria-label="密码">8699</div>
+        <div class="date">2025-08-28</div>
+      </article>
+      <article class="card">
+        <div class="name">长弓溪谷</div>
+        <div class="pass" aria-label="密码">0465</div>
+        <div class="date">2025-08-28</div>
+      </article>
+      <article class="card">
+        <div class="name">巴克什</div>
+        <div class="pass" aria-label="密码">2109</div>
+        <div class="date">2025-08-28</div>
+      </article>
+      <article class="card">
+        <div class="name">航天基地</div>
+        <div class="pass" aria-label="密码">8861</div>
+        <div class="date">2025-08-28</div>
+      </article>
+      <article class="card">
+        <div class="name">潮汐监狱</div>
+        <div class="pass" aria-label="密码">2548</div>
+        <div class="date">2025-08-28</div>
+      </article>
+    </section>
+    <footer>本网站目前仅做学习交流使用，禁止用于商业用途。</footer>
+    <script>
+      // 简单的日夜判定：6:00-18:00 为日间，其余为夜间；本地存储优先
+      (function() {
+        const STORAGE_KEY = 'theme'; // 'light' | 'dark'
+        const btn = document.getElementById('themeToggle');
+        const hour = new Date().getHours();
+        const defaultTheme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+
+        function applyTheme(theme) {
+          document.body.classList.remove('theme-light', 'theme-dark');
+          document.body.classList.add('theme-' + theme);
+          // 按钮图标与辅助文本
+          const to = theme === 'light' ? 'dark' : 'light';
+          btn.textContent = theme === 'light' ? '🌙' : '🌞';
+          btn.setAttribute('aria-label', '切换到' + (to === 'light' ? '日间' : '夜间'));
+          btn.setAttribute('title', '切换到' + (to === 'light' ? '日间' : '夜间'));
+        }
+
+        let theme = localStorage.getItem(STORAGE_KEY) || defaultTheme;
+        applyTheme(theme);
+
+        btn.addEventListener('click', function() {
+          theme = (theme === 'light') ? 'dark' : 'light';
+          localStorage.setItem(STORAGE_KEY, theme);
+          applyTheme(theme);
+        });
+      })();
+    </script>
+  </body>
+  </html>

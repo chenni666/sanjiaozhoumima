@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>位置一览</title>
+	<style>
+		:root {
+			--max-img-w: 320px;
+			--gap: 16px;
+		}
+		body {
+			margin: 0;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Microsoft YaHei", sans-serif;
+			color: #222;
+			background: #f7f7f8;
+		}
+		.page {
+			max-width: 980px;
+			margin: 0 auto;
+			padding: 24px 16px 56px;
+		}
+		h1 {
+			font-size: 22px;
+			margin: 0 0 20px;
+		}
+			.header-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				margin: 0 0 12px;
+				flex-wrap: wrap;
+			}
+			.header-row h1 { margin: 0; }
+			.tip {
+				font-size: 14px;
+				font-weight: 700;
+				color: #d9480f; /* 显眼的橙红色 */
+				white-space: nowrap;
+				user-select: none;
+			}
+		.list {
+			display: flex;
+			flex-direction: column;
+			gap: 14px;
+		}
+				.back-row {
+					position: sticky;
+					top: 0;
+					z-index: 20;
+					margin: 0 0 10px;
+					padding: 8px 0; /* 提升可点区域 */
+					background: rgba(247,247,248,0.85);
+					-webkit-backdrop-filter: saturate(180%) blur(6px);
+					backdrop-filter: saturate(180%) blur(6px);
+					border-bottom: 1px solid #e8e8ea;
+				}
+			.back-btn {
+				display: inline-block;
+				border: 1px solid #e8e8ea;
+				background: #fff;
+				color: #222;
+				border-radius: 8px;
+				padding: 8px 12px;
+				text-decoration: none;
+				box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+				font-size: 14px;
+			}
+			.back-btn:hover { filter: brightness(0.98); }
+		.row {
+			display: flex;
+			align-items: center;
+			gap: var(--gap);
+			padding: 12px;
+			background: #fff;
+			border: 1px solid #e8e8ea;
+			border-radius: 10px;
+			box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+		}
+		.text {
+			flex: 1 1 auto;
+			line-height: 1.6;
+		}
+		.title {
+			font-weight: 600;
+			margin-right: 6px;
+		}
+		.img-wrap {
+			flex: 0 0 auto;
+			max-width: var(--max-img-w);
+		}
+		.img-wrap img {
+			display: block;
+			max-width: 100%;
+			height: auto;
+			border-radius: 8px;
+			border: 1px solid #eee;
+		}
+		@media (max-width: 640px) {
+			.row { flex-direction: column; align-items: flex-start; }
+			.img-wrap { width: 100%; max-width: 100%; }
+		}
+
+			/* Lightbox */
+			.lightbox {
+				position: fixed;
+				inset: 0;
+				background: rgba(0,0,0,0.86);
+				display: none;
+				align-items: center;
+				justify-content: center;
+				padding: 24px;
+				z-index: 9999;
+			}
+			.lightbox.open { display: flex; }
+			.lightbox img {
+				max-width: 92vw;
+				max-height: 92vh;
+				box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+				border-radius: 10px;
+				border: 1px solid rgba(255,255,255,0.2);
+				background: #111;
+			}
+			.lightbox .close-btn {
+				position: fixed;
+				top: 16px;
+				right: 16px;
+				width: 40px;
+				height: 40px;
+				border-radius: 50%;
+				border: 1px solid rgba(255,255,255,0.25);
+				background: rgba(0,0,0,0.35);
+				color: #fff;
+				display: grid;
+				place-items: center;
+				cursor: pointer;
+				font-size: 20px;
+			}
+			.lightbox .caption {
+				position: fixed;
+				left: 24px;
+				right: 24px;
+				bottom: 18px;
+				color: #eee;
+				text-align: center;
+				font-size: 14px;
+				text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+			}
+			.no-scroll { overflow: hidden; }
+	</style>
+	<meta name="description" content="三角洲密码——位置与图片一览：每行对应一条说明与一张图片。" />
+</head>
+<body>
+	<main class="page">
+			<nav class="back-row" aria-label="页面导航">
+				<a class="back-btn" href="index.html" aria-label="返回首页" title="返回首页">← 返回</a>
+			</nav>
+			<div class="header-row">
+				<h1>位置与图片一览</h1>
+				<div class="tip" role="note" aria-label="提示">Tip: 点击图片可以放大哦</div>
+			</div>
+		<section class="list">
+			<!-- 零号大坝 -->
+			<div class="row">
+				<div class="text">
+					<span class="title">【零号大坝】</span>
+					<span>位置: 主变电站右侧，进入地下管道后匍匐到通道尽头处</span>
+				</div>
+				<div class="img-wrap">
+					<img src="image/daba.png" alt="零号大坝" loading="lazy" />
+				</div>
+			</div>
+
+			<!-- 长弓溪谷 -->
+			<div class="row">
+				<div class="text">
+					<span class="title">【长弓溪谷】</span>
+					<span>位置: 地图右下角标点附近地下入口</span>
+				</div>
+				<div class="img-wrap">
+					<img src="image/changgongxigu.png" alt="长弓溪谷" loading="lazy" />
+				</div>
+			</div>
+
+			<!-- 巴克什 -->
+			<div class="row">
+				<div class="text">
+					<span class="title">【巴克什】</span>
+					<span>位置: 大浴场北侧</span>
+				</div>
+				<div class="img-wrap">
+					<img src="image/bakeshi.png" alt="巴克什" loading="lazy" />
+				</div>
+			</div>
+
+			<!-- 航天基地 -->
+			<div class="row">
+				<div class="text">
+					<span class="title">【航天基地】</span>
+					<span>位置: 工业区组装室2楼</span>
+				</div>
+				<div class="img-wrap">
+					<img src="image/hangtian.png" alt="航天基地" loading="lazy" />
+				</div>
+			</div>
+
+			<!-- 潮汐监狱 -->
+			<div class="row">
+				<div class="text">
+					<span class="title">【潮汐监狱】</span>
+					<span>位置: 监狱行政区1楼大厅楼梯拐角处</span>
+				</div>
+				<div class="img-wrap">
+					<img src="image/prison.png" alt="潮汐监狱" loading="lazy" />
+				</div>
+			</div>
+		</section>
+	</main>
+		<!-- Lightbox overlay -->
+		<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片预览">
+			<button class="close-btn" id="lightbox-close" aria-label="关闭预览">×</button>
+			<img id="lightbox-img" alt="预览图" />
+			<div class="caption" id="lightbox-caption"></div>
+		</div>
+
+		<script>
+			(function(){
+				const lb = document.getElementById('lightbox');
+				const lbImg = document.getElementById('lightbox-img');
+				const lbCap = document.getElementById('lightbox-caption');
+				const closeBtn = document.getElementById('lightbox-close');
+				function openLightbox(src, alt){
+					lbImg.src = src;
+					lbImg.alt = alt || '预览图';
+					lbCap.textContent = alt || '';
+					lb.classList.add('open');
+					document.body.classList.add('no-scroll');
+				}
+				function closeLightbox(){
+					lb.classList.remove('open');
+					document.body.classList.remove('no-scroll');
+					// 延迟清理，避免关闭动画时闪烁（此处简单即刻清）
+					lbImg.removeAttribute('src');
+				}
+				// 点击图片打开
+				document.querySelectorAll('.img-wrap img').forEach(img => {
+					img.style.cursor = 'zoom-in';
+					img.addEventListener('click', () => openLightbox(img.currentSrc || img.src, img.alt));
+				});
+				// 点击背景或关闭按钮关闭
+				lb.addEventListener('click', (e) => {
+					if (e.target === lb) closeLightbox();
+				});
+				closeBtn.addEventListener('click', closeLightbox);
+				// 键盘 ESC 关闭
+				document.addEventListener('keydown', (e) => {
+					if (e.key === 'Escape' && lb.classList.contains('open')) closeLightbox();
+				});
+			})();
+		</script>
+</body>
+</html>
