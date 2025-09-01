@@ -1,11 +1,10 @@
-﻿<!DOCTYPE html>
-
+﻿<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>今日密码</title>
-<style>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>今日密码</title>
+    <style>
       :root {
         color-scheme: light dark;
         /* default (will be overridden by theme class) */
@@ -162,19 +161,46 @@
     .theme-toggle, .corner-link { display: none; }
       }
     </style>
-</head>
-<body>
-<button aria-label="切换日/夜间" class="theme-toggle" id="themeToggle" title="切换日/夜间">🌙</button>
-<a aria-label="前往改枪码网站" class="corner-link" href="https://gqm.cheniyy.top" rel="noopener" target="_blank" title="前往改枪码网站">改枪码</a>
-<div class="title-row">
-<h1>今日密码</h1>
-<nav aria-label="页面导航" class="link-row">
-<a aria-label="具体位置" class="link-btn" href="weizhi.html" title="具体位置">具体位置</a>
-</nav>
-</div>
-<section aria-label="密码列表" class="list" id="passwordList"><article class="card"><div class="name">巴克什</div><div aria-label="密码" class="pass">0152</div><div class="date">2025-08-30</div></article><article class="card"><div class="name">潮汐监狱</div><div aria-label="密码" class="pass">0137</div><div class="date">2025-08-30</div></article><article class="card"><div class="name">航天基地</div><div aria-label="密码" class="pass">0703</div><div class="date">2025-08-30</div></article><article class="card"><div class="name">长弓溪谷</div><div aria-label="密码" class="pass">0257</div><div class="date">2025-08-30</div></article><article class="card"><div class="name">零号大坝</div><div aria-label="密码" class="pass">0277</div><div class="date">2025-08-30</div></article></section>
-<footer>本网站目前仅做学习交流使用，禁止用于商业用途。</footer>
-<script>
+  </head>
+  <body>
+    <button id="themeToggle" class="theme-toggle" aria-label="切换日/夜间" title="切换日/夜间">🌙</button>
+  <a class="corner-link" href="https://gqm.cheniyy.top" target="_blank" rel="noopener" aria-label="前往改枪码网站" title="前往改枪码网站">改枪码</a>
+    <div class="title-row">
+      <h1>今日密码</h1>
+      <nav class="link-row" aria-label="页面导航">
+        <a class="link-btn" href="weizhi.html" aria-label="具体位置" title="具体位置">具体位置</a>
+      </nav>
+    </div>
+    <section class="list" aria-label="密码列表" id="passwordList">
+      <!-- 密码列表将通过JavaScript动态加载 -->
+      <article class="card">
+        <div class="name">零号大坝</div>
+        <div class="pass" aria-label="密码">8699</div>
+        <div class="date">2025-08-28</div>
+      </article>
+      <article class="card">
+        <div class="name">长弓溪谷</div>
+        <div class="pass" aria-label="密码">0465</div>
+        <div class="date">2025-08-28</div>
+      </article>
+      <article class="card">
+        <div class="name">巴克什</div>
+        <div class="pass" aria-label="密码">2109</div>
+        <div class="date">2025-08-28</div>
+      </article>
+      <article class="card">
+        <div class="name">航天基地</div>
+        <div class="pass" aria-label="密码">8861</div>
+        <div class="date">2025-08-28</div>
+      </article>
+      <article class="card">
+        <div class="name">潮汐监狱</div>
+        <div class="pass" aria-label="密码">2548</div>
+        <div class="date">2025-08-28</div>
+      </article>
+    </section>
+    <footer>本网站目前仅做学习交流使用，禁止用于商业用途。</footer>
+    <script>
       // 简单的日夜判定：6:00-18:00 为日间，其余为夜间；本地存储优先
       (function() {
         const STORAGE_KEY = 'theme'; // 'light' | 'dark'
@@ -227,5 +253,5 @@
       // 页面加载时尝试获取动态数据
       document.addEventListener('DOMContentLoaded', loadPasswords);
     </script>
-</body>
+  </body>
 </html>
